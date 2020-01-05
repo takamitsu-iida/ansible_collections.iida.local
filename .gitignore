@@ -1,4 +1,7 @@
 
+# ansible collection
+*.tar.gz
+
 # フォルダごと無視
 /data/
 
