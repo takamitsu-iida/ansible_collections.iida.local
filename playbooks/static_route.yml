@@ -1,0 +1,120 @@
+---
+
+- name: playbook for module test
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  vars:
+
+    running_config: |
+      !
+      ip route 0.0.0.0 0.0.0.0 172.20.0.1
+      ip route 1.1.11.0 255.255.255.0 dhcp 250
+      ip route 1.1.11.0 255.255.255.0 GigabitEthernet3 3.3.3.1 250 tag 1 name a track 1
+      ip route 1.1.11.0 255.255.255.0 GigabitEthernet3 3.3.3.1 250 tag 1 permanent name a
+
+
+  tasks:
+
+    # - include_vars: vars/r1.yml
+
+    #
+    # TEST 1
+    #
+    - name: create config to be pushed
+      iida.local.ios_static_route:
+        running_config: ""
+        # running_config_path: vars/sh_run_vlan.txt
+        static_routes: "{{ static_routes }}"
+        debug: true
+      register: r
+
+      vars:
+        static_routes:
+          - prefix: 10.0.0.0
+            netmask: 255.255.255.128
+            nh_intf: GigabitEthernet2
+            nh_addr: 172.28.128.100
+            ad: 250
+            tag: 1001
+            permanent: false
+            state: present
+
+          - prefix: 10.0.0.0
+            netmask: 255.255.255.0
+            nh_intf: GigabitEthernet2
+            nh_addr: 172.28.128.100
+            state: present
+
+    - name: TEST 1
+      debug:
+        var: r
+
+    #
+    # TEST 2
+    #
+    - name: create config to be pushed
+      iida.local.ios_static_route:
+        running_config: "{{ running_config }}"
+        # running_config_path: vars/sh_run_vlan.txt
+        static_routes: "{{ static_routes }}"
+        debug: true
+      register: r
+
+      vars:
+        static_routes:
+          - prefix: 1.1.11.0
+            netmask: 255.255.255.0
+            nh_intf: GigabitEthernet3
+            nh_addr: 3.3.3.1
+            state: present
+
+    - name: TEST 2
+      debug:
+        var: r
+
+    #
+    # TEST 3
+    #
+    - name: create config to be pushed
+      iida.local.ios_static_route:
+        running_config: "{{ running_config }}"
+        # running_config_path: vars/sh_run_vlan.txt
+        static_routes: "{{ static_routes }}"
+        debug: true
+        purge: true
+      register: r
+
+      vars:
+        static_routes:
+          - prefix: 1.1.11.0
+            netmask: 255.255.255.0
+            nh_intf: GigabitEthernet3
+            nh_addr: 3.3.3.1
+            state: present
+
+    - name: TEST 3
+      debug:
+        var: r
+
+    #
+    # TEST 4
+    #
+    - name: create config to be pushed
+      iida.local.ios_static_route:
+        running_config: "{{ running_config }}"
+        static_routes_cli: "{{ static_routes_cli }}"
+        state: present
+        debug: true
+      register: r
+
+      vars:
+        static_routes_cli:
+          - ip route 10.0.0.0 255.0.0.0 GigabitEthernet2 172.28.128.1
+          - ip route 10.0.0.0 255.255.0.0 GigabitEthernet2 172.28.128.1
+          - ip route 10.0.0.0 255.255.255.0 GigabitEthernet2 172.28.128.1
+
+    - name: TEST 4
+      debug:
+        var: r

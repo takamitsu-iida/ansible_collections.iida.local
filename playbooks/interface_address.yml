@@ -1,0 +1,57 @@
+---
+
+- name: playbook for module test
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  vars:
+    running_config: |
+      !
+      interface Loopback0
+       ip address 192.168.254.1 255.255.255.255
+      !
+      interface GigabitEthernet3
+       ip address 3.3.3.3 255.255.255.0
+       negotiation auto
+       cdp enable
+       no mop enabled
+       no mop sysid
+      !
+      interface GigabitEthernet4
+       ip address 44.44.44.44 255.255.255.0
+       negotiation auto
+       cdp enable
+       no mop enabled
+       no mop sysid
+      !
+
+  tasks:
+
+    #
+    # TEST 1
+    #
+    - name: create config to be pushed
+      iida.local.ios_interface_address:
+        running_config: "{{ running_config }}"
+        interfaces: "{{ interfaces }}"
+        debug: true
+      register: r
+
+      vars:
+        interfaces:
+          - name: GigabitEthernet3
+            ipv4: 3.3.3.3/24
+            ipv4_secondary:
+              - 33.33.33.1/24
+            state: present
+
+          - name: GigabitEthernet4
+            ipv4: 4.4.4.4/24
+            ipv4_secondary:
+              - 44.44.44.44/24
+            state: present
+
+    - name: TEST 1
+      debug:
+        var: r

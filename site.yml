@@ -1,0 +1,28 @@
+---
+
+- name: hsrp
+  import_playbook: playbooks/hsrp.yml
+
+- name: interface address
+  import_playbook: playbooks/interface_address.yml
+
+- name: interface trunk
+  import_playbook: playbooks/interface_trunk.yml
+
+- name: interface
+  import_playbook: playbooks/interface.yml
+
+- name: ip access-list
+  import_playbook: playbooks/ip_access_list.yml
+
+- name: link aggregation
+  import_playbook: playbooks/linkagg.yml
+
+- name: static route
+  import_playbook: playbooks/static_route.yml
+
+- name: vlan
+  import_playbook: playbooks/vlan.yml
+
+
+

@@ -1,0 +1,79 @@
+---
+
+- name: playbook for module test
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  vars:
+    running_config: |
+      !
+      interface GigabitEthernet3
+       description 2018-08-14T09:28:49Z
+       ip address 3.3.3.3 255.255.255.0
+       standby version 2
+       standby 1 ip 3.3.3.1
+       standby 1 ip 3.3.3.250 secondary
+       standby 1 ip 3.3.3.254 secondary
+       standby 1 preempt delay minimum 60 reload 180 sync 60
+       standby 1 authentication cisco2
+       negotiation auto
+       no mop enabled
+       no mop sysid
+      !
+      interface GigabitEthernet4
+       description 2018-08-14T09:28:49Z
+       ip address 4.4.4.4 255.255.255.0
+       standby 1 ip 4.4.4.1
+       standby 1 track 1 decrement 10
+       negotiation auto
+       no mop enabled
+       no mop sysid
+      !
+      interface GigabitEthernet5
+       description 2018-08-14T09:28:49Z
+       ip address 5.5.5.5 255.255.255.0
+       negotiation auto
+       no mop enabled
+       no mop sysid
+      !
+
+    interfaces:
+      - name: GigabitEthernet5
+        group: 1
+        version: 2
+        priority: 100
+        preempt: enabled
+        vip: 3.3.3.1
+        secondary:
+          - 3.3.3.254
+        auth_type: text
+        auth_string: cisco
+        track: 1
+        track_decrement: 10
+        state: present
+
+      - name: GigabitEthernet4
+        group: 1
+        version: 1
+        vip: 4.4.4.1
+        auth_type: md5
+        auth_string: cisco
+        state: present
+
+  tasks:
+
+    #
+    # TEST 1
+    #
+
+    - name: create config to be pushed
+      iida.local.ios_hsrp:
+        running_config: "{{ running_config }}"
+        interfaces: "{{ interfaces }}"
+        debug: true
+      register: r
+
+    - name: TEST 1
+      debug:
+        var: r

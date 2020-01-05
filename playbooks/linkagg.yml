@@ -1,0 +1,74 @@
+---
+
+- name: playbook for module test
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  vars:
+    running_config: |
+      !
+      vlan 10,20,30
+      no spannning-tree vlan 10,20,30
+      !
+      interface GigabitEthernet0/27
+       channel-group 1 mode on
+      !
+      interface GigabitEthernet0/28
+       channel-group 1 mode on
+      !
+      interface Port-channel1
+       switchport trunk encapsulation dot1q
+       switchport trunk allowed vlan 10,20,30
+       switchport mode trunk
+      !
+
+  tasks:
+
+    #
+    # TEST 1
+    #
+
+    - name: create config to be pushed
+      iida.local.ios_linkagg:
+        running_config: ""
+        port_channels: "{{ port_channels }}"
+        state: present
+        debug: true
+      register: r
+
+      vars:
+        port_channels:
+          - group: 1
+            mode: active
+            members:
+              - GigabitEthernet0/27
+              - GigabitEthernet0/28
+
+    - name: TEST 1
+      debug:
+        var: r
+
+    #
+    # TEST 2
+    #
+
+    - name: create config to be pushed
+      iida.local.ios_linkagg:
+        running_config: "{{ running_config }}"
+        port_channels: "{{ port_channels }}"
+        state: present
+        debug: true
+      register: r
+
+      vars:
+        port_channels:
+          - group: 1
+            mode: active
+            members:
+              - GigabitEthernet0/27
+              - GigabitEthernet0/28
+
+    - name: TEST 2
+      debug:
+        var: r

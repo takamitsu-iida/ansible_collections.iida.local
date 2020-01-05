@@ -1,0 +1,90 @@
+---
+
+- name: playbook for module test
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  vars:
+
+    running_config: |
+      Building configuration...
+
+      Current configuration:
+      !
+      vlan 2
+       name -inside-
+      !
+      vlan 3
+       name -outside-
+      !
+      vlan 4,6,8
+      end
+
+
+  tasks:
+
+    # - include_vars: vars/c3560g.yml
+
+    #
+    # TEST 1
+    #
+    - name: create config to be pushed
+      iida.local.ios_vlan:
+        running_config: "{{ running_config }}"
+        # running_config_path: vars/sh_run_vlan.txt
+        vlans: "{{ vlans }}"
+      register: r
+
+      vars:
+        vlans:
+          # 1-4094すべてのVLAN情報をpresent/absentで表現した方がいい
+          - vlan_id: 2
+            vlan_name: inside
+            state: present
+
+          - vlan_id: 3
+            vlan_name: outside
+            state: present
+
+          - vlan_range: 4-9
+            state: present
+
+          - vlan_range: 10-4094
+            state: absent
+
+    - name: TEST 1
+      debug:
+        var: r
+
+    #
+    # TEST 2
+    #
+    - name: create config to be pushed
+      iida.local.ios_vlan:
+        running_config: "{{ running_config }}"
+        vlans: "{{ vlans }}"
+      register: r
+
+      vars:
+        vlans:
+          - vlan_id: 2
+            vlan_name: inside
+            state: present
+
+          - vlan_id: 3
+            vlan_name: outside
+            state: present
+
+          - vlan_range: 4
+            state: absent
+
+          - vlan_range: 5
+            state: present
+
+          - vlan_range: 6-4094
+            state: absent
+
+    - name: TEST 2
+      debug:
+        var: r

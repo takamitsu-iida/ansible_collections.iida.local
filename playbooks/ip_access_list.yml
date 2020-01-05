@@ -1,0 +1,61 @@
+---
+
+- name: playbook for module test
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  tasks:
+
+    #
+    # TEST 1
+    #
+
+    - name: create config to be pushed
+      iida.local.ios_ip_acl:
+        show_access_list: ""
+        acl_cli: "{{ acl_cli }}"
+        debug: true
+      register: r
+      vars:
+        acl_cli:
+          - permit ip 192.168.10.0 0.0.0.255 any
+          - permit ip 192.168.20.0 0.0.0.255 any
+          - permit ip 192.168.30.0 0.0.0.255 any
+          - permit ip 192.168.40.0 0.0.0.255 any
+          - permit ip 192.168.50.0 0.0.0.255 any
+
+    - name: TEST 1
+      debug:
+        var: r
+
+    #
+    # TEST 2
+    #
+
+    - name: create config to be pushed
+      iida.local.ios_ip_acl:
+        show_access_list: "{{ show_access_list }}"
+        acl_cli: "{{ acl_cli }}"
+        debug: true
+      register: r
+      vars:
+        # show access-lists {{ acl_name }} | include ^ +[1-9]
+        show_access_list: |
+          10 permit ip 192.168.10.0 0.0.0.255 any
+          20 permit ip 192.168.20.0 0.0.0.255 any
+          30 permit ip 192.168.30.0 0.0.0.255 any
+          40 permit ip 192.168.40.0 0.0.0.255 any
+          50 permit ip 192.168.50.0 0.0.0.255 any
+
+        acl_cli:
+          - permit ip 192.168.20.0 0.0.0.255 any
+          - permit ip 192.168.10.0 0.0.0.255 any
+          - permit ip 192.168.30.0 0.0.0.255 any
+          - permit ip 192.168.40.0 0.0.0.255 any
+          - permit ip 192.168.50.0 0.0.0.255 any
+
+    - name: TEST 2
+      debug:
+        var: r
+
